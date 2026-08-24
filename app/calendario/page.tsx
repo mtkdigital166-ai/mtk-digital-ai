@@ -1,0 +1,1 @@
+export default function P(){return <><h1>Calendário editorial</h1><div className="card"><h2>Agosto 2026</h2><div className="grid stats">{['24 SEG\nEducação','26 QUA\nAntes e depois','28 SEX\nOferta','30 DOM\nEngajamento'].map(x=><div className="card" key={x} style={{whiteSpace:'pre-line'}}>{x}</div>)}</div><br/><button className="btn">Planejar meu mês</button></div></>}
