@@ -6,8 +6,18 @@ function list(v:string){return v.split(/[,\n]/).map(x=>x.trim()).filter(Boolean)
 function slugify(v:string){return v.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,40)}
 
 export async function completeOnboarding(formData:FormData){
- const supabase=await createClient(); const {data:claims}=await supabase.auth.getClaims(); const userId=claims?.claims?.sub as string|undefined
- if(!userId) redirect('/login')
+ const supabase = await createClient()
+
+const {
+  data: { user },
+  error: userError,
+} = await supabase.auth.getUser()
+
+if (userError || !user) {
+  redirect('/login')
+}
+
+const userId = user.id
  const name=String(formData.get('name')||'').trim(); const segment=String(formData.get('segment')||'').trim(); const subsegment=String(formData.get('subsegment')||'').trim(); const city=String(formData.get('city')||'').trim(); const state=String(formData.get('state')||'').trim(); const goal=String(formData.get('goal')||'Conseguir mais clientes'); const instagram=String(formData.get('instagram')||'').trim(); const whatsapp=String(formData.get('whatsapp')||'').trim(); const services=list(String(formData.get('services')||'')); const differentiators=list(String(formData.get('differentiators')||'')); const tone=list(String(formData.get('tone')||'Elegante, próximo, profissional')); const audience=String(formData.get('audience')||'').trim();
  if(!name||!segment) redirect('/onboarding?erro='+encodeURIComponent('Informe o nome e o segmento da empresa.'))
  let {data:org}=await supabase.from('organizations').select('id').eq('owner_id',userId).limit(1).maybeSingle()
