@@ -23,7 +23,25 @@ const userId = user.id
  const name=String(formData.get('name')||'').trim(); const segment=String(formData.get('segment')||'').trim(); const subsegment=String(formData.get('subsegment')||'').trim(); const city=String(formData.get('city')||'').trim(); const state=String(formData.get('state')||'').trim(); const goal=String(formData.get('goal')||'Conseguir mais clientes'); const instagram=String(formData.get('instagram')||'').trim(); const whatsapp=String(formData.get('whatsapp')||'').trim(); const services=list(String(formData.get('services')||'')); const differentiators=list(String(formData.get('differentiators')||'')); const tone=list(String(formData.get('tone')||'Elegante, próximo, profissional')); const audience=String(formData.get('audience')||'').trim();
  if(!name||!segment) redirect('/onboarding?erro='+encodeURIComponent('Informe o nome e o segmento da empresa.'))
  let {data:org}=await supabase.from('organizations').select('id').eq('owner_id',userId).limit(1).maybeSingle()
- if(!org){const suffix=userId.slice(0,6);const created=await supabase.from('organizations').insert({owner_id:userId,name,slug:`${slugify(name)}-${suffix}`}).select('id').single(); if(created.error) redirect('/onboarding?erro='+encodeURIComponent(created.error.message)); org=created.data}
+ if (!org) {
+  const suffix = userId.slice(0, 6)
+
+  const { data: orgId, error: orgError } = await supabase.rpc(
+    'create_own_organization',
+    {
+      p_name: name,
+      p_slug: `${slugify(name)}-${suffix}`,
+    }
+  )
+
+  if (orgError) {
+    redirect(
+      '/onboarding?erro=' + encodeURIComponent(orgError.message)
+    )
+  }
+
+  org = { id: orgId }
+}
  const companyInsert=await supabase.from('companies').insert({organization_id:org!.id,name,segment,subsegment:subsegment||null,city:city||null,state:state||null,service_mode:'local',instagram:instagram||null,whatsapp:whatsapp||null,primary_goal:goal,cta:whatsapp?'Chame no WhatsApp':'Entre em contato',services,differentiators,onboarding_completed:true}).select('id').single()
  if(companyInsert.error) redirect('/onboarding?erro='+encodeURIComponent(companyInsert.error.message))
  const companyId=companyInsert.data.id
